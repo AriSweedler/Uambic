@@ -23,8 +23,9 @@ def main():
 
     # Do work
     for word in sys.argv[1:]:
-        print(f"You said {word}. In IPA, that is ... ", end="", flush=True)
-        get_word_from_merriam_webster_online(word)
+        print(f"You said {word}. In IPA, that is ...\t", end="", flush=True)
+        ipa_word = get_word_from_merriam_webster_online(word)
+        print(ipa_word)
 
 
 def get_word_from_merriam_webster_online(word: str):
@@ -37,23 +38,17 @@ def get_word_from_merriam_webster_online(word: str):
         return
 
     soup = BeautifulSoup(html_doc.read(), "html.parser")
-    #print(f"Done.")
 
-    # Extract relevant data from page
-    ### # TODO you need to fix this case:
-    ### <span class="pr"> Ësam-</span>
-    ### <span class="pr"><span class="l"> dialectal </span> ËsaÅ-</span>
-    ### <span class="pr"> Ësan(d)-(Ë)wich</span>
-    ### <span class="pr"> Ësand-Ëwich</span>
-
+    # From the webpage, parse out all the the potential IPA versions of the word
     span_pr = soup.find_all("span", attrs={"class": "pr"})
     ipa_word = ""
     for potential_ipa_word in span_pr:
+        if not potential_ipa_word.string: continue
         if len(potential_ipa_word.string) < len(ipa_word): continue
         ipa_word = potential_ipa_word.string
 
-    # Use relevant data to curl comic into output
-    print(ipa_word)
+    # Return our word converted to IPA
+    return ipa_word
 
 
 if __name__ == "__main__":
