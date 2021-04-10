@@ -1,0 +1,60 @@
+#!/usr/local/bin/python3
+
+import sys
+import os
+from datetime import datetime, timedelta, date
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
+
+#parent_path_str = "~/Documents/dilbert/"
+#parent_path = os.path.expanduser(parent_path_str)
+
+def usage(msg, exit=True):
+    if msg:
+        print(msg)
+    print(f"Usage: {sys.argv[0]} word")
+
+
+def main():
+    # Parse args
+    if len(sys.argv) != 2:
+        usage("Give 1 argument")
+        exit(1)
+
+    # Do work
+    for word in sys.argv[1:]:
+        print(f"You said {word}. In IPA, that is ... ", end="", flush=True)
+        get_word_from_merriam_webster_online(word)
+
+
+def get_word_from_merriam_webster_online(word: str):
+    # GET the webpage & parse it with bs4
+    url = f"https://www.merriam-webster.com/dictionary/{word}"
+    try:
+        html_doc = urlopen(url)
+    except:
+        usage("\t\nWord not found")
+        return
+
+    soup = BeautifulSoup(html_doc.read(), "html.parser")
+    #print(f"Done.")
+
+    # Extract relevant data from page
+    ### # TODO you need to fix this case:
+    ### <span class="pr"> Ësam-</span>
+    ### <span class="pr"><span class="l"> dialectal </span> ËsaÅ-</span>
+    ### <span class="pr"> Ësan(d)-(Ë)wich</span>
+    ### <span class="pr"> Ësand-Ëwich</span>
+
+    span_pr = soup.find_all("span", attrs={"class": "pr"})
+    ipa_word = ""
+    for potential_ipa_word in span_pr:
+        if len(potential_ipa_word.string) < len(ipa_word): continue
+        ipa_word = potential_ipa_word.string
+
+    # Use relevant data to curl comic into output
+    print(ipa_word)
+
+
+if __name__ == "__main__":
+    main()
